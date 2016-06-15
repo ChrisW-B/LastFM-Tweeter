@@ -1,0 +1,25 @@
+{
+  "name": "last-fm-auto-tweeter",
+  "version": "0.0.1",
+  "description": "Automatically tweets top artists from Last.fm",
+  "main": "lastfmtweeter.js",
+  "author": "Chris Barry <me@chrisb.xyz>",
+  "license": "None",
+  "repository": {
+    "type": "git",
+    "url": "null"
+  },
+  "keywords": [
+    "lastfm",
+    "twitter"
+  ],
+  "dependencies": {
+    "simple-lastfm": "git://github.com/ChrisW-B/simple-lastfm#master",
+    "jsonfile": "*",
+    "twitter": "*"
+  },
+  "engines": {
+    "node": "0.10.x",
+    "npm": "1.3.x"
+  }
+}
