@@ -42,6 +42,8 @@ function sendTweet(text) {
 		if (error) {
 			console.log("error sending tweet", error);
 			throw error;
+		} else {
+			console.log("Tweeted: \"" + text + "\"");
 		}
 	});
 }
@@ -80,6 +82,7 @@ function prepareTweet(tweetString, len) {
 		return true;
 	} else {
 		// otherwise try again with less artists
+		console.log("too many artists");
 		return false;
 	}
 }
