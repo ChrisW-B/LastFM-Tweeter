@@ -1,7 +1,15 @@
 var Lastfm = require('simple-lastfm'),
 	config = require('./config'),
-	Twitter = require('twitter');
-
+	Twitter = require('twitter'),
+	winston = require('winston');
+winston.add(winston.transports.File, {
+	level: 'info',
+	timestamp: true,
+	filename: "log.txt",
+	json: false
+});
+winston.remove(winston.transports.Console);
+winston.cli();
 var lastfm = new Lastfm({
 		api_key: config.lastfm.token,
 		api_secret: config.lastfm.secret
@@ -12,7 +20,6 @@ var lastfm = new Lastfm({
 		access_token_key: config.twitter.tokenKey,
 		access_token_secret: config.twitter.tokenSecret,
 	});
-
 var userName = config.lastfm.username;
 var initialArtistNum = 5;
 var timePeriod = '7day';
@@ -27,7 +34,7 @@ function getTopArtists(user, limit, period, callback) {
 			if (result.success) {
 				callback(false, result.topArtists);
 			} else {
-				console.log("error getting lastfm", result);
+				winston('error', "error getting lastfm", result);
 				callback(true, null);
 			}
 		}
@@ -40,10 +47,10 @@ function sendTweet(text) {
 		status: text
 	}, function(error, tweet, response) {
 		if (error) {
-			console.log("error sending tweet", error);
+			winston('error', "error sending tweet", error);
 			throw error;
 		} else {
-			console.log("Tweeted: \"" + text + "\"");
+			winston.info("Tweeted: \"" + text + "\"");
 		}
 	});
 }
@@ -52,7 +59,7 @@ function getUrlLength(callback) {
 	// checks the current length of t.co links for future proofing
 	twitter.get('help/configuration', function(error, response) {
 		if (error) {
-			console.log("error getting url length", error);
+			winston('error', "error getting url length", error);
 			callback(true, null)
 		} else {
 			callback(false, response.short_url_length);
@@ -82,7 +89,7 @@ function prepareTweet(tweetString, len) {
 		return true;
 	} else {
 		// otherwise try again with less artists
-		console.log("too many artists");
+		winston.info("too many artists");
 		return false;
 	}
 }
@@ -103,5 +110,4 @@ function main(name, numArtists, period) {
 		}
 	});
 }
-
 main(userName, initialArtistNum, timePeriod);

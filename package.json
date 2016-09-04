@@ -9,14 +9,12 @@
     "type": "git",
     "url": "null"
   },
-  "keywords": [
-    "lastfm",
-    "twitter"
-  ],
+  "keywords": ["lastfm", "twitter"],
   "dependencies": {
     "simple-lastfm": "git://github.com/ChrisW-B/simple-lastfm#master",
     "jsonfile": "*",
-    "twitter": "*"
+    "twitter": "*",
+    "winston": "*"
   },
   "engines": {
     "node": "0.10.x",
