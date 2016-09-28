@@ -1,6 +1,7 @@
 var Lastfm = require('lastfm-njs'),
 	config = require('./config'),
-	Twitter = require('twitter');
+	Twitter = require('twitter'),
+	winston = require('winston');
 winston.add(winston.transports.File, {
 	level: 'info',
 	timestamp: true,
