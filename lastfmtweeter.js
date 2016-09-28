@@ -1,7 +1,6 @@
-var Lastfm = require('simple-lastfm'),
+var Lastfm = require('lastfm-njs'),
 	config = require('./config'),
-	Twitter = require('twitter'),
-	winston = require('winston');
+	Twitter = require('twitter');
 winston.add(winston.transports.File, {
 	level: 'info',
 	timestamp: true,
@@ -11,8 +10,8 @@ winston.add(winston.transports.File, {
 winston.remove(winston.transports.Console);
 winston.cli();
 var lastfm = new Lastfm({
-		api_key: config.lastfm.token,
-		api_secret: config.lastfm.secret
+		apiKey: config.lastfm.token,
+		apiSecret: config.lastfm.secret
 	}),
 	twitter = new Twitter({
 		consumer_key: config.twitter.consumerKey,
@@ -26,13 +25,13 @@ var timePeriod = '7day';
 
 function getTopArtists(user, limit, period, callback) {
 	// pulls the top artists of user in the past period as an array of size limit
-	lastfm.getTopArtists({
+	lastfm.user_getTopArtists({
 		user: user,
 		limit: limit,
 		period: period,
 		callback: function(result) {
 			if (result.success) {
-				callback(false, result.topArtists);
+				callback(false, result);
 			} else {
 				winston('error', "error getting lastfm", result);
 				callback(true, null);
@@ -89,7 +88,7 @@ function prepareTweet(tweetString, len) {
 		return true;
 	} else {
 		// otherwise try again with less artists
-		winston.info("too many artists");
+		// winston.info("too many artists");
 		return false;
 	}
 }
@@ -98,7 +97,7 @@ function main(name, numArtists, period) {
 	// gets last.fm artists and prepares them for tweeting
 	getTopArtists(name, numArtists, period, function(error, topArtists) {
 		if (!error) {
-			var tweetString = "Top artists this week: " + createArtistString(topArtists) + "\n\n(via ";
+			var tweetString = "Top artists this week: " + createArtistString(topArtists.artist) + "\n\n(via ";
 			getUrlLength(function(error, len) {
 				if (!error) {
 					if (!prepareTweet(tweetString, len)) {
