@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/ChrisW-B/LastFM-Tweeter#readme",
   "dependencies": {
-    "lastfm-njs": "^0.1.2",
-    "twitter": "^1.4.0",
-    "winston": "^2.2.0"
+    "lastfm-njs": "^0.x",
+    "twitter": "^1.x",
+    "winston": "^2.x"
   }
 }

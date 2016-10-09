@@ -24,20 +24,12 @@ var userName = config.lastfm.username;
 var initialArtistNum = 5;
 var timePeriod = '7day';
 
-function getTopArtists(user, limit, period, callback) {
+function getTopArtists(user, limit, period) {
 	// pulls the top artists of user in the past period as an array of size limit
-	lastfm.user_getTopArtists({
+	return lastfm.user_getTopArtists({
 		user: user,
 		limit: limit,
 		period: period,
-		callback: function(result) {
-			if (result.success) {
-				callback(false, result);
-			} else {
-				winston('error', "error getting lastfm", result);
-				callback(true, null);
-			}
-		}
 	});
 }
 
@@ -55,15 +47,16 @@ function sendTweet(text) {
 	});
 }
 
-function getUrlLength(callback) {
+function getUrlLength() {
 	// checks the current length of t.co links for future proofing
-	twitter.get('help/configuration', function(error, response) {
-		if (error) {
-			winston('error', "error getting url length", error);
-			callback(true, null)
-		} else {
-			callback(false, response.short_url_length);
-		}
+	return new Promise(function(resolve, reject) {
+		twitter.get('help/configuration', function(error, response) {
+			if (error) {
+				reject(error)
+			} else {
+				resolve(response.short_url_length);
+			}
+		});
 	});
 }
 
@@ -89,25 +82,32 @@ function prepareTweet(tweetString, len) {
 		return true;
 	} else {
 		// otherwise try again with less artists
-		// winston.info("too many artists");
+		winston.info("too many artists");
 		return false;
 	}
 }
 
 function main(name, numArtists, period) {
 	// gets last.fm artists and prepares them for tweeting
-	getTopArtists(name, numArtists, period, function(error, topArtists) {
-		if (!error) {
-			var tweetString = "Top artists this week: " + createArtistString(topArtists.artist) + "\n\n(via ";
-			getUrlLength(function(error, len) {
-				if (!error) {
-					if (!prepareTweet(tweetString, len)) {
-						// not tweetable, try again with less artists
-						main(name, numArtists - 1, period);
-					}
-				}
-			});
-		}
-	});
+	getTopArtists(name, numArtists, period)
+		.then(res => setupTweet(res, name, numArtists, period))
+		.catch(logError);
 }
+
+function setupTweet(res, name, numArtists, period) {
+	var tweetString = "Top artists this week: " + createArtistString(res.artist) + "\n\n(via ";
+	getUrlLength()
+		.then(function(len) {
+			if (!prepareTweet(tweetString, len)) {
+				// not tweetable, try again with less artists
+				main(name, numArtists - 1, period);
+			}
+		})
+		.catch(logError);
+}
+
+function logError(err) {
+	winston.error(err);
+}
+
 main(userName, initialArtistNum, timePeriod);
