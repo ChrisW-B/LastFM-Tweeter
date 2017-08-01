@@ -1,113 +1,70 @@
-var Lastfm = require('lastfm-njs'),
-	config = require('./config'),
-	Twitter = require('twitter'),
-	winston = require('winston');
-winston.add(winston.transports.File, {
-	level: 'info',
-	timestamp: true,
-	filename: "log.txt",
-	json: false
-});
-winston.remove(winston.transports.Console);
-winston.cli();
-var lastfm = new Lastfm({
-		apiKey: config.lastfm.token,
-		apiSecret: config.lastfm.secret
-	}),
-	twitter = new Twitter({
-		consumer_key: config.twitter.consumerKey,
-		consumer_secret: config.twitter.consumerSecret,
-		access_token_key: config.twitter.tokenKey,
-		access_token_secret: config.twitter.tokenSecret,
-	});
-var userName = config.lastfm.username;
-var initialArtistNum = 5;
-var timePeriod = '7day';
+const Lastfm = require('lastfm-njs'),
+  config = require('./config'),
+  winston = require('winston'),
+  Twitter = require('twitter');
 
-function getTopArtists(user, limit, period) {
-	// pulls the top artists of user in the past period as an array of size limit
-	return lastfm.user_getTopArtists({
-		user: user,
-		limit: limit,
-		period: period,
-	});
-}
+const lastfm = new Lastfm({
+    apiKey: config.lastfm.token,
+    apiSecret: config.lastfm.secret
+  }),
+  twitter = new Twitter({
+    consumer_key: config.twitter.consumerKey,
+    consumer_secret: config.twitter.consumerSecret,
+    access_token_key: config.twitter.tokenKey,
+    access_token_secret: config.twitter.tokenSecret
+  });
+const userName = config.lastfm.username;
+const initialArtistNum = 6;
+const timePeriod = '7day';
 
-function sendTweet(text) {
-	// sends a tweet comprised of 'text'
-	twitter.post('statuses/update', {
-		status: text
-	}, function(error, tweet, response) {
-		if (error) {
-			winston('error', "error sending tweet", error);
-			throw error;
-		} else {
-			winston.info("Tweeted: \"" + text + "\"");
-		}
-	});
-}
+// pulls the top artists of user in the past period as an array of size limit
+const getTopArtists = async(user, limit, period) =>
+  await lastfm.user_getTopArtists({
+    user,
+    limit,
+    period
+  });
 
-function getUrlLength() {
-	// checks the current length of t.co links for future proofing
-	return new Promise(function(resolve, reject) {
-		twitter.get('help/configuration', function(error, response) {
-			if (error) {
-				reject(error)
-			} else {
-				resolve(response.short_url_length);
-			}
-		});
-	});
-}
+const getUrlLen = () =>
+  new Promise((resolve, reject) =>
+    twitter.get('help/configuration', (e, res) => e
+      ? reject(e) : resolve(res.short_url_length_https)))
 
-function createArtistString(topArtists) {
-	// create a string of artists with playcounts
-	var artistString = ""
-	for (var i = 0; i < topArtists.length; i++) {
-		if (i != topArtists.length - 1) {
-			artistString += topArtists[i].name + " (" + topArtists[i].playcount + "), ";
-		} else {
-			artistString += "and " + topArtists[i].name + " (" + topArtists[i].playcount + ")";
-		}
-	}
-	return artistString;
-}
+// sends a tweet comprised of 'text'
+const sendTweet = text =>
+  new Promise((resolve, reject) =>
+    twitter.post('statuses/update', {
+      status: text
+    }, (e, res) => e ? reject(e) : resolve(res))
+  );
 
-function prepareTweet(tweetString, len) {
-	// ensure string is tweetable, returning true if it is
-	tweetLength = tweetString.length + len + 1; // 1 for the last paren
-	if (tweetLength <= 140) {
-		// make sure tweet is short enough
-		sendTweet(tweetString + "http://last.fm/user/" + config.lastfm.username + ")");
-		return true;
-	} else {
-		// otherwise try again with less artists
-		winston.info("too many artists");
-		return false;
-	}
-}
+// create a string of artists with playcounts
+const createArtistString = topArtists =>
+  topArtists.reduce((acc, artist, i) =>
+    `${acc} ${artist.name} (${artist.playcount})${(i !== topArtists.length - 2) ? i!==topArtists.length-1 ? ',' : '' : ', and'}`, '');
 
-function main(name, numArtists, period) {
-	// gets last.fm artists and prepares them for tweeting
-	getTopArtists(name, numArtists, period)
-		.then(res => setupTweet(res, name, numArtists, period))
-		.catch(logError);
-}
+// gets last.fm artists and prepares them for tweeting
+const main = async(name, numArtists, period) => {
+  const topArtists = await getTopArtists(name, numArtists, period);
+  setupTweet(topArtists, name, numArtists, period);
+};
 
-function setupTweet(res, name, numArtists, period) {
-	var tweetString = "Top artists this week: " + createArtistString(res.artist) + "\n\n(via ";
-	getUrlLength()
-		.then(function(len) {
-			if (!prepareTweet(tweetString, len)) {
-				// not tweetable, try again with less artists
-				main(name, numArtists - 1, period);
-			}
-		})
-		.catch(logError);
-}
+const setupTweet = async(res, name, numArtists, period) => {
+  const tweetString = `Top artists this week:${createArtistString(res.artist)}\n\n(via `;
+  const urlLength = await getUrlLen();
+  if (tweetString.length + urlLength + 1 <= 140) {
+    try {
+      await sendTweet(`${tweetString}https://last.fm/user/${config.lastfm.username})`);
+      winston.info(`Successfully Tweeted!\n ${tweetString}https://last.fm/user/${config.lastfm.username})`)
+    } catch (e) {
+      winston.warn(`Couldn't tweet ${tweetString}https://last.fm/user/${config.lastfm.username})`);
+      winston.warn(e, null, 2);
+    }
+  } else {
+    winston.info(`Too long ${tweetString}https://last.fm/user/${config.lastfm.username})\n\nTrying with ${numArtists - 1} artists`);
+    main(userName, --numArtists, timePeriod);
+  }
 
-function logError(err) {
-	winston.error(err);
-}
+};
 
 main(userName, initialArtistNum, timePeriod);
