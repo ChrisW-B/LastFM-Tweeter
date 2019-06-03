@@ -1,70 +1,90 @@
-const Lastfm = require('lastfm-njs'),
-  config = require('./config'),
-  winston = require('winston'),
-  Twitter = require('twitter');
+const Lastfm = require('lastfm-njs');
+const winston = require('winston');
+const Twitter = require('twitter-lite');
+const config = require('./config');
 
 const lastfm = new Lastfm({
-    apiKey: config.lastfm.token,
-    apiSecret: config.lastfm.secret
-  }),
-  twitter = new Twitter({
-    consumer_key: config.twitter.consumerKey,
-    consumer_secret: config.twitter.consumerSecret,
-    access_token_key: config.twitter.tokenKey,
-    access_token_secret: config.twitter.tokenSecret
-  });
+  apiKey: config.lastfm.token,
+  apiSecret: config.lastfm.secret
+});
+const twitter = new Twitter({
+  consumer_key: config.twitter.consumerKey,
+  consumer_secret: config.twitter.consumerSecret,
+  access_token_key: config.twitter.tokenKey,
+  access_token_secret: config.twitter.tokenSecret
+});
 const userName = config.lastfm.username;
 const initialArtistNum = 6;
-const timePeriod = '7day';
+const defaultTimePeriod = '7day';
 
 // pulls the top artists of user in the past period as an array of size limit
-const getTopArtists = async(user, limit, period) =>
-  await lastfm.user_getTopArtists({
+const getTopArtists = (user, limit, period) =>
+  lastfm.user_getTopArtists({
     user,
     limit,
     period
   });
-
-const getUrlLen = () =>
-  new Promise((resolve, reject) =>
-    twitter.get('help/configuration', (e, res) => e
-      ? reject(e) : resolve(res.short_url_length_https)))
+const getUrlLen = async () => {
+  try {
+    const response = await twitter.get('help/configuration');
+    if (!response.errors || !response.errors.length) {
+      return response.short_url_length_https;
+    } else {
+      throw new Error(response);
+    }
+  } catch (e) {
+    winston.error(e);
+  }
+};
 
 // sends a tweet comprised of 'text'
-const sendTweet = text =>
-  new Promise((resolve, reject) =>
-    twitter.post('statuses/update', {
-      status: text
-    }, (e, res) => e ? reject(e) : resolve(res))
-  );
+const sendTweet = text => twitter.post('statuses/update', { status: text });
+
+const getPunc = (i, artistLength) => (i !== artistLength - 1 ? ',' : '');
+const getJoiner = (i, artistLength) => (i !== artistLength - 2 ? getPunc(i, artistLength) : ', and');
 
 // create a string of artists with playcounts
 const createArtistString = topArtists =>
-  topArtists.reduce((acc, artist, i) =>
-    `${acc} ${artist.name} (${artist.playcount})${(i !== topArtists.length - 2) ? i!==topArtists.length-1 ? ',' : '' : ', and'}`, '');
+  topArtists.reduce(
+    (acc, artist, i) => `${acc} ${artist.name} (${artist.playcount})${getJoiner(i, topArtists.length)}`,
+    ''
+  );
 
-// gets last.fm artists and prepares them for tweeting
-const main = async(name, numArtists, period) => {
-  const topArtists = await getTopArtists(name, numArtists, period);
-  setupTweet(topArtists, name, numArtists, period);
-};
+const setupTweet = async (artistArray, urlLength) => {
+  const tweetString = `Top artists this week:${createArtistString(artistArray)}
 
-const setupTweet = async(res, name, numArtists, period) => {
-  const tweetString = `Top artists this week:${createArtistString(res.artist)}\n\n(via `;
-  const urlLength = await getUrlLen();
-  if (tweetString.length + urlLength + 1 <= 140) {
+  (via `; // include the via because we need to count it
+
+  if (tweetString.length + urlLength + 1 <= 1) {
     try {
       await sendTweet(`${tweetString}https://last.fm/user/${config.lastfm.username})`);
-      winston.info(`Successfully Tweeted!\n ${tweetString}https://last.fm/user/${config.lastfm.username})`)
+      winston.info(`Successfully Tweeted!
+       ${tweetString}https://last.fm/user/${config.lastfm.username})`);
     } catch (e) {
       winston.warn(`Couldn't tweet ${tweetString}https://last.fm/user/${config.lastfm.username})`);
       winston.warn(e, null, 2);
     }
-  } else {
-    winston.info(`Too long ${tweetString}https://last.fm/user/${config.lastfm.username})\n\nTrying with ${numArtists - 1} artists`);
-    main(userName, --numArtists, timePeriod);
-  }
+  } else if (artistArray.length > 1) {
+    winston.info(
+      `Too long ${tweetString}https://last.fm/user/${config.lastfm.username})
 
+      Trying with ${artistArray.length - 1} artists`
+    );
+    setupTweet(artistArray.splice(0, artistArray.length - 1), urlLength);
+  } else {
+    winston.info(`The top artist, ${createArtistString(artistArray)}, has too long a name`);
+  }
 };
 
-main(userName, initialArtistNum, timePeriod);
+// gets last.fm artists and prepares them for tweeting
+const main = async (name, numArtists, period) => {
+  try {
+    const topArtists = await getTopArtists(name, numArtists, period);
+    const urlLength = await getUrlLen();
+    setupTweet(topArtists.artist, urlLength);
+  } catch (e) {
+    winston.error(e);
+  }
+};
+
+main(userName, initialArtistNum, defaultTimePeriod);

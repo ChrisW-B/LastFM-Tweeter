@@ -18,22 +18,24 @@
   },
   "homepage": "https://github.com/ChrisW-B/LastFM-Tweeter#readme",
   "dependencies": {
-    "lastfm-njs": "^0.x",
+    "lastfm-njs": "^1.0.0",
     "twitter": "^1.7.1",
-    "winston": "^2.3.1"
+    "twitter-lite": "^0.9.4",
+    "winston": "^2.4.4"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "eslint": "^4.3.0",
-    "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.7.0",
-    "eslint-plugin-node": "^5.1.1",
-    "eslint-plugin-promise": "^3.5.0",
-    "eslint-plugin-react": "^7.1.0",
-    "eslint-plugin-standard": "^3.0.1",
-    "nodemon": "^1.11.0"
+    "eslint": "^5.3.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.17.1"
   },
   "scripts": {
-    "start": "node lastfmtweeter.js"
+    "start": "node lastfmtweeter.js",
+    "lint:js": "eslint ./ --ignore-pattern 'public/**/*.js' --ignore-pattern 'coverage/**/*.js'",
+    "lint:js:fix": "eslint --fix ./ --ignore-pattern 'public/**/*.js' --ignore-pattern 'coverage/**/*.js'",
+    "prettier": "prettier \"./{client,config,scripts,server}/**/*.{j,t}s{on,}\"",
+    "prettier:fix": "prettier \"./**/*.{j,t}s{on,}\" --write"
   }
 }
