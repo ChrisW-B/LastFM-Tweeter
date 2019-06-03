@@ -55,7 +55,7 @@ const setupTweet = async (artistArray, urlLength) => {
 
   (via `; // include the via because we need to count it
 
-  if (tweetString.length + urlLength + 1 <= 1) {
+  if (tweetString.length + urlLength + 1 <= 280) {
     try {
       await sendTweet(`${tweetString}https://last.fm/user/${config.lastfm.username})`);
       winston.info(`Successfully Tweeted!
