@@ -18,18 +18,18 @@
   },
   "homepage": "https://github.com/ChrisW-B/LastFM-Tweeter#readme",
   "dependencies": {
-    "lastfm-njs": "^1.0.0",
-    "twitter": "^1.7.1",
-    "twitter-lite": "^0.9.4",
-    "winston": "^2.4.4"
+    "lastfm-njs": "1.0.0",
+    "twitter": "1.7.1",
+    "twitter-lite": "1.1.0"
   },
   "devDependencies": {
-    "eslint": "^6.6.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-prettier": "^6.5.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-prettier": "^3.1.1",
-    "prettier": "^1.18.2"
+    "dotenv": "8.2.0",
+    "eslint": "7.25.0",
+    "eslint-config-airbnb-base": "14.2.1",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-prettier": "3.4.0",
+    "prettier": "2.2.1"
   },
   "scripts": {
     "start": "node lastfmtweeter.js",
