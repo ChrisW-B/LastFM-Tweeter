@@ -58,3 +58,5 @@ jspm_packages/
 
 # Local Netlify folder
 .netlify
+
+.serverless
