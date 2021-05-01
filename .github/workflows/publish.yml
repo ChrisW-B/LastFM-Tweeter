@@ -1,0 +1,41 @@
+name: Deploy to AWS Lambda
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Get code from repo
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+
+      - name: 📬 Caching
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+
+      # Install NodeJS
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+
+      # Run npm install and build on our code
+      - name: 🧰 Install dependencies
+        run: npm ci
+        env:
+          CI: true
+
+      - name: 📦 Publish to Lamda
+        uses: serverless/github-action@master
+        with:
+          args: deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

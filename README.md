@@ -8,7 +8,8 @@ Top artists this week: ArtistA (90), ArtistB (31), ArtistC (27), and ArtistD (18
 (via http://last.fm/user/[username])
 ```
 
-Starts with 5 artists by default, then eliminates artists until its under 140 characters
+Run the app with `npm run start -- [initialArtistCount] [lastFmTimePeriod]`.
+e.g `npm run start -- 6 7day`
 
 ### .env setup:
 
