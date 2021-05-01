@@ -2,45 +2,64 @@
   "name": "lastfm-tweeter",
   "version": "1.0.0",
   "description": "Automatically tweets top artists from Last.fm",
-  "main": "lastfmtweeter.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ChrisW-B/LastFM-Tweeter.git"
-  },
   "keywords": [
     "lastfm",
     "twitter"
   ],
-  "author": "Chris Barry <me@chrisb.xyz>",
-  "license": "ISC",
+  "homepage": "https://github.com/ChrisW-B/LastFM-Tweeter#readme",
   "bugs": {
     "url": "https://github.com/ChrisW-B/LastFM-Tweeter/issues"
   },
-  "homepage": "https://github.com/ChrisW-B/LastFM-Tweeter#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrisW-B/LastFM-Tweeter.git"
+  },
+  "license": "ISC",
+  "author": "Chris Barry <me@chrisb.xyz>",
+  "main": "lastfmtweeter.js",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "build": "tsc",
+    "lint:js": "eslint . --ext .ts --cache --cache-location 'node_modules/.cache/.eslintcache/'",
+    "lint:js:fix": "npm run lint:js -- --fix ",
+    "prettier": "prettier --list-different \"./**/*.{ts,tsx,js,jsx,gql,html,yml,json}\" --write",
+    "prettier:check": "prettier './**/*.{ts,tsx,js,jsx,json}' -c",
+    "start": "node dist/index.js",
+    "typescript": "tsc --noEmit"
+  },
   "dependencies": {
+    "dotenv": "8.2.0",
     "lastfm-njs": "1.0.0",
     "twitter": "1.7.1",
     "twitter-lite": "1.1.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "8.10.76",
     "@types/node": "15.0.1",
     "@typescript-eslint/eslint-plugin": "4.22.0",
     "@typescript-eslint/parser": "4.22.0",
-    "dotenv": "8.2.0",
     "eslint": "7.25.0",
     "eslint-config-airbnb-base": "14.2.1",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "2.22.1",
     "eslint-plugin-prettier": "3.4.0",
+    "import-sort-style-module": "6.0.0",
     "prettier": "2.2.1",
+    "prettier-plugin-import-sort": "0.0.6",
+    "prettier-plugin-packagejson": "2.2.10",
+    "serverless": "2.39.0",
+    "serverless-offline": "7.0.0",
+    "serverless-plugin-typescript": "1.1.9",
     "typescript": "4.2.4"
   },
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js 6 7day",
-    "lint:js": "eslint ./ --ignore-pattern 'public/**/*.js' --ignore-pattern 'coverage/**/*.js'",
-    "lint:js:fix": "eslint --fix ./ --ignore-pattern 'public/**/*.js' --ignore-pattern 'coverage/**/*.js'",
-    "prettier": "prettier \"./**/*.{j,t}s{on,}\"",
-    "prettier:fix": "prettier \"./**/*.{j,t}s{on,}\" --write"
+  "importSort": {
+    ".js, .jsx, .es6, .es": {
+      "parser": "babylon",
+      "style": "module"
+    },
+    ".ts, .tsx": {
+      "parser": "typescript",
+      "style": "module"
+    }
   }
 }

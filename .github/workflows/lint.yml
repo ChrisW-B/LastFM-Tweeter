@@ -1,0 +1,48 @@
+name: Lint Project
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
+      - run: npm ci
+
+      - run: npm run prettier:check
+
+  check-eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
+      - run: npm ci
+
+      - run: npm run lint:js
+
+  check-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
+      - run: npm ci
+
+      - run: npm run typescript
