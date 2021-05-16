@@ -22,11 +22,7 @@ declare module 'lastfm-njs' {
 
   export default class LastFM {
     constructor(props: ConstructorOptions);
-    user_getTopArtists(data: {
-      user: string;
-      limit: number;
-      period: LastFmTimePeriod;
-    }): Promise<{
+    user_getTopArtists(data: { user: string; limit: number; period: LastFmTimePeriod }): Promise<{
       artist: LastFmArtist[];
     }>;
   }
