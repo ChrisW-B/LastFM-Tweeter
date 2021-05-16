@@ -16,7 +16,6 @@ provider:
   runtime: nodejs14.x
 
 plugins:
-  - serverless-offline
   - serverless-plugin-typescript
 
 # The `functions` block defines what code to deploy
