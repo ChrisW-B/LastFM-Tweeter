@@ -4,6 +4,8 @@ import Twitter from 'twitter-lite';
 
 dotenv.config();
 
+const SHORT_URL_LEN = 23;
+
 const LASTFM_TIME_PERIODS: readonly LastFmTimePeriod[] = [
   'overall',
   '7day',
@@ -71,24 +73,6 @@ class Tweeter {
   private getTopArtists = (limit: number, period: LastFmTimePeriod) =>
     this.lastfmClient.user_getTopArtists({ user: this.username, limit, period });
 
-  private getUrlLen = async (): Promise<number | undefined> => {
-    let responseLength: number | undefined = undefined;
-    try {
-      const response = await this.twitterClient.get<{
-        errors?: string[];
-        short_url_length_https: number;
-      }>('help/configuration');
-      if (!response.errors || !response.errors.length) {
-        responseLength = response.short_url_length_https;
-      } else {
-        throw new Error(response.errors?.join(','));
-      }
-    } catch (e) {
-      console.error(e);
-    }
-    return responseLength;
-  };
-
   // sends a tweet comprised of 'text'
   private sendTweet = (text: string) => {
     if (process.env['DEBUG']) {
@@ -152,7 +136,7 @@ class Tweeter {
     }
     try {
       const topArtists = await this.getTopArtists(+numArtists, period as LastFmTimePeriod);
-      const urlLength = await this.getUrlLen();
+      const urlLength = SHORT_URL_LEN;
       if (urlLength) {
         await this.setupTweet(topArtists.artist, urlLength, period as LastFmTimePeriod);
       }
