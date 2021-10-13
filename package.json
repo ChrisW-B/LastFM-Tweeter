@@ -18,8 +18,8 @@
   "author": "Chris Barry <me@chrisb.xyz>",
   "main": "lastfmtweeter.js",
   "scripts": {
-    "deploy": "serverless deploy",
     "build": "tsc",
+    "deploy": "serverless deploy",
     "lint:js": "eslint . --ext .ts --cache --cache-location 'node_modules/.cache/.eslintcache/'",
     "lint:js:fix": "npm run lint:js -- --fix ",
     "prettier": "prettier --list-different \"./**/*.{ts,tsx,js,jsx,gql,html,yml,json}\" --write",
