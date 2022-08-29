@@ -7,7 +7,7 @@
 # The `service` block is the name of the service
 service: lastfm-tweeter
 
-frameworkVersion: '2'
+frameworkVersion: '3'
 useDotenv: false
 
 # The `provider` block defines where your service will be deployed
